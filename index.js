@@ -1,5 +1,6 @@
 var request = require('request');
 var cheerio = require('cheerio');
+var dummy = require('./dummy');
 
 request('https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-33o-boletim-da-covid-19', function(err, resp, html) {
         if (!err){
@@ -8,30 +9,51 @@ request('https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-33o-bo
             // paragraphs.each( (i,e) => {
             //     console.log($(e).text())
             // });
+            const dataMined = [];
             const table = $('div.clearfix').find('table');
             const tableRows = table.find('tr');
             tableRows.each((i,tr)=>{
                 if(i>0){
                     const tableDatas = $(tr).find('td');
                     const paragraphs = tableDatas.find('p');
+                    let dados_municipio = {
+                        nome:"",
+                        casos_confirmados: 0,
+                        casos_descartados: 0,
+                        casos_suspeitos: 0,
+                        total_notificacoes:0
+                    }
                     paragraphs.each((i,p) => {
                         if(i==0){ // Nome do Município
-                            console.log($(p).text())
+                            dados_municipio.nome = $(p).text();
                         }
                         if(i==1){ // Casos confirmados
-                            console.log($(p).text())
+                            dados_municipio.casos_confirmados = $(p).text();
                         }
                         if(i==2){ // Casos descartados
-                            console.log($(p).text())
+                            dados_municipio.casos_descartados = $(p).text();
                         }
                         if(i==3){ // Casos suspeitos
-                            console.log($(p).text())
+                            dados_municipio.casos_suspeitos = $(p).text();
                         }
                         if(i==4){ // Total de notificações
-                            console.log($(p).text())
+                            dados_municipio.total_notificacoes = $(p).text();
+                            //console.log(dados_municipio);
+                            dataMined.push(dados_municipio);
+                            dados_municipio = {
+                                nome:"",
+                                casos_confirmados: 0,
+                                casos_descartados: 0,
+                                casos_suspeitos: 0,
+                                total_notificacoes:0
+                            }
                         }
                     });
                 }
-            })
+            });
+            // Aqui tenho acesso à variável <<dataMined>> preenchida com os dados da mineração.
+            console.log(dataMined);
       }
 });
+
+console.log(`Total de municípios: ${dummy.length}`)
