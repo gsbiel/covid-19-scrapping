@@ -1,6 +1,7 @@
 var request = require('request');
 var cheerio = require('cheerio');
 var dummy = require('./dummy');
+var fs = require('fs');
 
 request('https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-33o-boletim-da-covid-19', function(err, resp, html) {
         if (!err){
@@ -53,7 +54,15 @@ request('https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-33o-bo
             });
             // Aqui tenho acesso à variável <<dataMined>> preenchida com os dados da mineração.
             console.log(dataMined);
-      }
+            fs.writeFile('./datamined.json', JSON.stringify(dataMined), err => {
+                if (err) {
+                    console.log('Error writing file', err)
+                } else {
+                    console.log('Successfully wrote file');
+                }
+            });     
+        }
 });
 
 console.log(`Total de municípios: ${dummy.length}`)
+
