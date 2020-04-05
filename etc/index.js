@@ -1,9 +1,14 @@
+// Este script realiza a coleta dos dados presentes na página da secretaria de estado da saúde do ES
+// Os dados da coleta são armazenados no arquivo datamined.json, criado neste diretório.
+
 var request = require('request');
 var cheerio = require('cheerio');
 var dummy = require('./dummy');
 var fs = require('fs');
 
-request('https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-33o-boletim-da-covid-19', function(err, resp, html) {
+const boletim = 35;
+
+request(`https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-${boletim}o-boletim-da-covid-19`, function(err, resp, html) {
         if (!err){
             const $ = cheerio.load(html);
             // const paragraphs = $('div.clearfix').find('p');
