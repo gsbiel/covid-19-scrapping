@@ -1,7 +1,14 @@
 const connection = require('../database/connection');
 
+var contador = 0;
+
 module.exports = {
+
+    contador: 0 ,
+
     async getReport(request, response){
-        return response.json("Hello World!");
+        const template = `Contador: ${contador}`;
+        contador += 1;
+        return response.json(template);
     }
 }
