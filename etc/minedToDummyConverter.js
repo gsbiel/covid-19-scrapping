@@ -4,12 +4,12 @@
 // 3) Execute este script
 // 4) Acesse o conteúdo no arquivo realdata.json, criado neste diretório.
 
-const dummy = require('./dummy');
+const municipios = require('./municipios');
 const dataMined = require('./datamined');
 const fs = require('fs');
 
 console.log(`Número de municípios minerados: ${dataMined.length}`);
-console.log(`Total de municípios: ${dummy.length}`);
+console.log(`Total de municípios: ${municipios.length}`);
 
 const convertToNumber = (numberStr) => {
     if(numberStr.split(" ")[0].split('.').length>=2){
@@ -19,7 +19,7 @@ const convertToNumber = (numberStr) => {
     }
 }
 
-const data = dummy.slice();
+const data = municipios.slice();
 const realData = {
     data: data,
     total_positivo: 0,
@@ -39,7 +39,7 @@ realData.total_positivo = total_positivo;
 realData.total_negativo = total_negativo;
 realData.total_suspeito = total_suspeito;
 
-dummy.forEach((element, index) => {
+municipios.forEach((element, index) => {
     const municipio = dataMined.filter((elementoMinerado)=>{
         return elementoMinerado["nome"].trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") == element.nome.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     });
