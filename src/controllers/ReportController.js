@@ -33,7 +33,7 @@ cron.schedule("0 0,4,8,12,16,20 * * *", function() {
     console.log("-------------------------------------------------")
     console.log("Task: Coleta do boletim COVID19 mais recente.");
     console.log(`Horário: ${time.toString()}`);
-    console.log("Coletando...")
+    console.log("Coletando...");
 
     request(`https://saude.es.gov.br/Noticias`, function(err, resp, html) {
         if(!err){
@@ -112,11 +112,6 @@ module.exports = {
                             }
                         });
 
-                        //Aqui tenho acesso à variável <<dataMined>> preenchida com os dados da mineração.
-                        if(dataMined.length){
-                            response.status(404).json({erro:`A API não conseguiu coletar dados do boletim ${currentReport}.`});
-                        }
-
                         const total_positivoStr = dataMined[(dataMined.length-1)]["casos_confirmados"].split(" ")[0];
                         const total_negativoStr = dataMined[(dataMined.length-1)]["casos_descartados"].split(" ")[0];
                         const total_suspeitoStr = dataMined[(dataMined.length-1)]["casos_suspeitos"].split(" ")[0]; 
@@ -181,12 +176,11 @@ module.exports = {
             }
             catch(err){
                 console.log(err);
-                response.status(400).json({error: err});
+                response.status(400).json({error: "Houve um erro na coleta de dados."});
             }
         }
     }
 }
-
 
 const convertToNumber = (numberStr) => {
     if(numberStr.split(" ")[0].split('.').length>=2){
