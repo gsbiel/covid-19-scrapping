@@ -3,9 +3,14 @@ const cron = require("node-cron");
 var request = require('request');
 var cheerio = require('cheerio');
 var municipios = require('../../etc/municipios');
+var fs = require('fs');
 
-var currentReport = 37
-var dateOfCurrentReport = "04/04/2020, às 19h25"
+var currentReport = 38
+var dateOfCurrentReport = "05/04/2020, às 19h46"
+
+const URL_BASE_DA_COLETA = "https://saude.es.gov.br"
+let URL_DA_COLETA = `https://saude.es.gov.br/Contents/Item/Display/45443`;  // Boletim 38 é o mais recente
+
 
 var fetchedDataCache = {
     forReportNumber:0,
@@ -27,7 +32,7 @@ const realData = {
 // "0 0,5,10,15,20,25,30,35,40,45,50,55 * * * *"    -> de 5 em 5 minutos
 // "0,20,40 * * * * *"                              -> de 20 em 20 segundos
 
-cron.schedule("0 0,4,8,12,16,20 * * *", function() {
+cron.schedule("0 2,4,6,8,10,12,14,16,18,20,22 * * *" , function() {
     const time = new Date()
 
     console.log("-------------------------------------------------")
@@ -49,6 +54,9 @@ cron.schedule("0 0,4,8,12,16,20 * * *", function() {
             });
 
             if(boletins.length){
+                // Pega a URL do boletim mais recente (pq esse link pode variar de formato)
+                URL_DA_COLETA = `${URL_BASE_DA_COLETA}/${$(boletins[0]).attr('href')}`;
+
                 const splitLatest = $(boletins[0]).text().split('º')[0].split(' ');
                 const latestNumber = splitLatest[splitLatest.length-1]; // Número do boletim mais recente
                 //console.log(`Boletim mais recente: ${latestNumber}`);
@@ -69,10 +77,9 @@ cron.schedule("0 0,4,8,12,16,20 * * *", function() {
                 }
             } 
         }
+        console.log("Coleta finalizada!");
+        console.log(`Boletim mais recente: nº${currentReport}, ${dateOfCurrentReport}.`);
     });
-
-    console.log("Coleta finalizada!");
-    console.log(`Boletim mais recente: nº${dateOfCurrentReport}.`);
 
 });
 
@@ -86,7 +93,7 @@ module.exports = {
             // console.log(`Não há dados armazenados em chache para o boletim: ${currentReport}. Executando scrapping...`);
             // Minera o boletim
             try{
-                request(`https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-${currentReport}o-boletim-da-covid-19`, function(err, resp, html) {
+                request( URL_DA_COLETA, function(err, resp, html) {
                     if (!err){
                         const $ = cheerio.load(html);
                         // const paragraphs = $('div.clearfix').find('p');
@@ -96,17 +103,20 @@ module.exports = {
                         let dataMined = [];
                         const table = $('div.clearfix').find('table');
                         const tableRows = table.find('tr');
+                        console.log(tableRows.length);
                         tableRows.each((i,tr)=>{
                             if(i>0){
                                 const tableDatas = $(tr).find('td');
                                 let paragraphs = 0;
                                 if(!tableDatas.find('p').length && tableDatas.length == 6){
                                     const dataLine = minerarTextoDosTableDatas($, tableDatas);
+                                    console.log("minerou td's");
                                     dataMined.push(dataLine[0]);
                                 }
                                 else if(tableDatas.find('p').length == 6){
                                     paragraphs = tableDatas.find('p');
                                     const dataLine = minerarParagrafosDosTableDatas($, paragraphs); 
+                                    console.log("minerou paragrafos")
                                     dataMined.push(dataLine[0]);
                                 }   
                             }
@@ -170,6 +180,15 @@ module.exports = {
                             forReportNumber: currentReport
                         }
                         // // console.log(dataMined);
+
+                        fs.writeFile('./realdata.json', JSON.stringify(realData), err => {
+                            if (err) {
+                                console.log('Error writing file', err)
+                            } else {
+                                console.log('Successfully wrote file');
+                            }
+                        }); 
+
                         response.json(realData);
                     }
                 });
