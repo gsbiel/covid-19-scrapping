@@ -5,11 +5,11 @@ var cheerio = require('cheerio');
 var municipios = require('../../etc/municipios');
 var fs = require('fs');
 
-var currentReport = 38
-var dateOfCurrentReport = "05/04/2020, às 19h46"
+var currentReport = 42;
+var dateOfCurrentReport = "09/04/2020, às 18H53"
 
 const URL_BASE_DA_COLETA = "https://saude.es.gov.br"
-let URL_DA_COLETA = `https://saude.es.gov.br/Contents/Item/Display/45443`;  // Boletim 38 é o mais recente
+let URL_DA_COLETA = `https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-42o-boletim-da-covid-19`;  // Boletim 38 é o mais recente
 
 
 var fetchedDataCache = {
