@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(routes);    // Esse comando deve estar sempre abaixo do express.json();
 
-const PORT = 3333;;
+const PORT = process.env.PORT || 3333;
 const HOST = '0.0.0.0';
 
 app.listen(PORT, HOST);
