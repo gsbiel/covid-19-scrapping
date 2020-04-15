@@ -2,7 +2,6 @@ const express = require('express');
 const routes = require('./routes');
 const cors = require('cors');
 
-
 // app.use(cors({origin:'http://google.com'}));  //Permite apenas acessos do google.
 const app = express();
 app.use(cors());

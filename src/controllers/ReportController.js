@@ -5,12 +5,11 @@ var cheerio = require('cheerio');
 var municipios = require('../../etc/municipios');
 var fs = require('fs');
 
-var currentReport = 42;
-var dateOfCurrentReport = "09/04/2020, às 18H53"
+var currentReport = 47;
+var dateOfCurrentReport = "14/04/2020, às 19H53" 
 
 const URL_BASE_DA_COLETA = "https://saude.es.gov.br"
-let URL_DA_COLETA = `https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-42o-boletim-da-covid-19`;  // Boletim 38 é o mais recente
-
+let URL_DA_COLETA = `https://saude.es.gov.br/Not%C3%ADcia/secretaria-da-saude-divulga-47o-boletim-da-covid-19`;  // Boletim 38 é o mais recente
 
 var fetchedDataCache = {
     forReportNumber:0,
@@ -18,6 +17,7 @@ var fetchedDataCache = {
 };
 
 const data = municipios.slice();
+
 const realData = {
     data: data,
     total_positivo: 0,
@@ -32,7 +32,7 @@ const realData = {
 // "0 0,5,10,15,20,25,30,35,40,45,50,55 * * * *"    -> de 5 em 5 minutos
 // "0,20,40 * * * * *"                              -> de 20 em 20 segundos
 
-cron.schedule("0 2,4,6,8,10,12,14,16,18,20,22 * * *" , function() {
+cron.schedule("0,20,40 * * * * *"  , function() {
     const time = new Date()
 
     console.log("-------------------------------------------------")
@@ -40,52 +40,58 @@ cron.schedule("0 2,4,6,8,10,12,14,16,18,20,22 * * *" , function() {
     console.log(`Horário: ${time.toString()}`);
     console.log("Coletando...");
 
-    request(`https://saude.es.gov.br/Noticias`, function(err, resp, html) {
-        if(!err){
-            const $ = cheerio.load(html);
+    try{
+        request(`https://saude.es.gov.br/Noticias`, function(err, resp, html) {
+            if(!err){
+                const $ = cheerio.load(html);
 
-            //Busca Notícias:
-            const noticias = $('.title-list').find('a');
-            const boletins = noticias.map((index, element)=>{
-                const innerHTML = $(element).text();
-                if(innerHTML.includes('divulga') && innerHTML.includes('boletim') && innerHTML.includes('Covid-19')){
-                    return element;
-                }     
-            });
-
-            if(boletins.length){
-                // Pega a URL do boletim mais recente (pq esse link pode variar de formato)
-                URL_DA_COLETA = `${URL_BASE_DA_COLETA}/${$(boletins[0]).attr('href')}`;
-
-                const splitLatest = $(boletins[0]).text().split('º')[0].split(' ');
-                const latestNumber = splitLatest[splitLatest.length-1]; // Número do boletim mais recente
-                //console.log(`Boletim mais recente: ${latestNumber}`);
-
-                //Busca datas:
-                const dateNodes = $('.published');
-                const datas = []
-                dateNodes.each((index,element) => {
-                    const process = $(element).text().split('-')[0].trim().split(' ');
-                    datas.push(process);
+                //Busca Notícias:
+                const noticias = $('.title-list').find('a');
+                const boletins = noticias.map((index, element)=>{
+                    const innerHTML = $(element).text();
+                    if(innerHTML.includes('divulga') && innerHTML.includes('boletim') && innerHTML.includes('Covid-19')){
+                        return element;
+                    }     
                 });
-                const latestData = datas[0].join(', às ');
-                // console.log(`Publicado em: ${latestData}`);
 
-                if(currentReport !== latestNumber){
-                    currentReport = Number(latestNumber);
-                    dateOfCurrentReport = latestData;
-                }
-            } 
-        }
-        console.log("Coleta finalizada!");
-        console.log(`Boletim mais recente: nº${currentReport}, ${dateOfCurrentReport}.`);
-    });
+                if(boletins.length){
+                    // Pega a URL do boletim mais recente (pq esse link pode variar de formato)
+                    URL_DA_COLETA = `${URL_BASE_DA_COLETA}/${$(boletins[0]).attr('href')}`;
+                    console.log(`URL DO INFELIZ: ${URL_DA_COLETA}`);
+
+                    const splitLatest = $(boletins[0]).text().split('º')[0].split(' ');
+                    const latestNumber = splitLatest[splitLatest.length-1]; // Número do boletim mais recente
+                    //console.log(`Boletim mais recente: ${latestNumber}`);
+
+                    //Busca datas:
+                    const dateNodes = $('.published');
+                    const datas = []
+                    dateNodes.each((index,element) => {
+                        const process = $(element).text().split('-')[0].trim().split(' ');
+                        datas.push(process);
+                    });
+                    const latestData = datas[0].join(', às ');
+                    // console.log(`Publicado em: ${latestData}`);
+
+                    if(currentReport !== latestNumber){
+                        currentReport = Number(latestNumber);
+                        dateOfCurrentReport = latestData;
+                    }
+                } 
+            }
+            console.log("Coleta finalizada!");
+            console.log(`Boletim mais recente: nº${currentReport}, ${dateOfCurrentReport}.`);
+        });
+    }catch(err){
+        console.log(err);
+    }
 
 });
 
 module.exports = {
 
     async getReport(req, response){
+        console.log("entrei aqui")
         if(fetchedDataCache.forReportNumber == currentReport){
             // console.log(`Há dados armazenados em chache para o boletim: ${currentReport}, então não será necessário minerar.`)
             return response.json(fetchedDataCache.dataStored);
@@ -94,7 +100,9 @@ module.exports = {
             // Minera o boletim
             try{
                 request( URL_DA_COLETA, function(err, resp, html) {
+                    console.log(err);
                     if (!err){
+                        console.log("não deu erro")
                         const $ = cheerio.load(html);
                         // const paragraphs = $('div.clearfix').find('p');
                         // paragraphs.each( (i,e) => {
@@ -191,6 +199,9 @@ module.exports = {
 
                         response.json(realData);
                     }
+                    else{
+                        response.status(400).json({error: "Houve um erro com a coleta da página da SESA"})
+                    }
                 });
             }
             catch(err){
@@ -267,7 +278,7 @@ const minerarTextoDosTableDatas = ($,tableDatas) => {
 }
 
 const minerarParagrafosDosTableDatas = ($, paragraphs) => {
-
+    console.log("minerar parágrafos")
     const dataLine = [];
 
     let dados_municipio = {
