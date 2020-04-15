@@ -32,7 +32,7 @@ const realData = {
 // "0 0,5,10,15,20,25,30,35,40,45,50,55 * * * *"    -> de 5 em 5 minutos
 // "0,20,40 * * * * *"                              -> de 20 em 20 segundos
 
-cron.schedule("0,20,40 * * * * *"  , function() {
+cron.schedule("0 0,4,8,12,16,20 * * *"  , function() {
     const time = new Date()
 
     console.log("-------------------------------------------------")
